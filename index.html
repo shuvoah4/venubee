@@ -93,13 +93,7 @@ if(view=='c'){
  if(st=='accepted')a=`<p>Pay within <b class="cd" data-id="${b.id}">${fmt(COUNT(b))}</b> to confirm. The slot is held until then.</p><button class="btn" onclick="pay('${b.id}')">Pay ${$(b.total)} (demo wallet)</button>`;
  if(st=='paid'){const cap=Math.floor(b.g0*.1);a=`<p class="note">Demo: hours until event <select onchange="setH('${b.id}',+this.value)">${[...new Set([72,40,30,20,14,8,3,b.hrs])].sort((x,y)=>y-x).map(x=>`<option ${x==b.hrs?'selected':''}>${x}</option>`).join('')}</select></p>
  <div class="row"><label>Add guests<input type="number" id="inc${b.id}" min="1" value="1"></label><label>&nbsp;<button class="btn s" onclick="incG('${b.id}')">Pay for extra guests</button></label><label>Reduce guests (once, max ${cap})<input type="number" id="red${b.id}" min="1" value="${b.used?0:Math.min(1,cap)}" ${b.used||!cap?'disabled':''}></label><label>&nbsp;<button class="btn s g" onclick="redG('${b.id}')" ${b.used||!cap?'disabled':''}>Reduce</button></label></div>
- <p><button class="btn s r" onclick="cancelB('${b.id}')">Cancel booking (${b.hrs>48?80:b.hrs>=24?60:30}% refund)</button></p>`}
- if(st=='completed')a=`<p class="mu">Final guests ${b.final}. Food refund ${$(b.fr||0)}.</p>`;
-}else if(view=='o'){
- if(st=='requested')a=`<button class="btn s" onclick="accept('${b.id}')">Accept</button> <button class="btn s g" onclick="rej('${b.id}')">Reject</button>`;
- if(st=='accepted')a='<p class="mu">Awaiting payment (30 min hold).</p>';
- if(st=='paid'||st=='completed')a=`<p>📞 <b>${b.name}</b> · ${b.phone}</p>`;else a+='<p class="mu">Customer contact hidden until payment.</p>';
- if(st=='paid')a+=`<div class="row"><label>Final guest count<input type="number" id="fin${b.id}" value="${b.guests}"></label><label>&nbsp;<button class="btn s" onclick="finish('${b.id}')">Submit after event</button></label></div>`;
+ <p><button class="btn s r" onclick="cancelB('${b.id}')">Cancel booking " value="${b.guests}"></label><label>&nbsp;<button class="btn s" onclick="finish('${b.id}')">Submit after event</button></label></div>`;
 }else{
  a=`<p class="mu">Commission ${b.rate}% = ${$(c)} · Vendor share ${$(s)} · Advances paid ${$(adv(b))}${st=='completed'?' · Final payout '+$(b.fp):''}</p>`;
  if(st=='paid')a+=`<button class="btn s" ${b.hrs>48||b.adv[0]?'disabled':''} onclick="advance('${b.id}',0)">Release 20% (${$(s*.2)})</button> <button class="btn s" ${b.hrs>24||b.adv[1]?'disabled':''} onclick="advance('${b.id}',1)">Release 30% (${$(s*.3)})</button> <span class="note">hrs to event: ${b.hrs}</span>`}
