@@ -59,7 +59,7 @@ const led=(b,t,a)=>{D.lg.unshift({id:b.id,t,a,at:new Date().toLocaleTimeString()
 const calc=b=>{const c=Math.round(b.total*b.rate/100);return{c,s:b.total-c}};
 const adv=b=>b.adv[0]+b.adv[1];
 const msg=m=>{S.msg=m};
-function go(v,id){if(S.user&&S.user.role!='c'){S.msg='';render();return}if(v=='mine'&&!S.user){S.view='login';S.msg='Log in to see your bookings.';render();return}S.view=v;if(id){S.vid=id;initF(vn(id))}S.msg='';render();scrollTo(0,0)}
+function go(v,id){if(S.user&&S.user.role!='c'){S.msg='';render();return}if(v=='mine'&&!S.user){S.view='login';S.msg='Log in to see your bookings.';render();return}const ch=S.view!=v||(id&&id!=S.vid);S.view=v;if(id){S.vid=id;initF(vn(id))}S.msg='';if(ch)nav();render();scrollTo(0,0)}
 function role(r){S.role=r;S.msg='';render()}
 function initF(v){const d=new Date(Date.now()+7*864e5).toISOString().slice(0,10);F={hall:v.halls[0].id,pkg:v.pk[0].id,ex:[],guests:Math.min(v.halls[0].max,Math.max(v.halls[0].min,20)),date:d,time:'19:00',name:S.user?S.user.name:'',phone:S.user?S.user.phone:''}}
 function quote(v){const h=v.halls.find(x=>x.id==F.hall),p=v.pk.find(x=>x.id==F.pkg),ex=v.ex.filter(e=>F.ex.includes(e.id)),food=p.price*F.guests,et=ex.reduce((a,e)=>a+e.price,0);return{h,p,ex,food,et,total:h.rent+food+et}}
@@ -80,10 +80,10 @@ return `<p><a href="#" onclick="go('home');return false">← All venues</a></p><
 <div class="box sum"><h3>Cost summary</h3><div><span>Hall rental</span><span>${$(q.h.rent)}</span></div><div><span>Food ${$(q.p.price)} × ${F.guests}</span><span>${$(q.food)}</span></div><div><span>Customizations</span><span>${$(q.et)}</span></div><div class="t"><span>Total</span><span>${$(q.total)}</span></div></div>
 <div class="box"><h3>4. Your details</h3><div class="row"><label>Name<input value="${F.name}" onchange="F.name=this.value"></label><label>Phone<input value="${F.phone}" placeholder="01XXXXXXXXX" onchange="F.phone=this.value"></label></div><p class="note">The owner sees your contact details only after you pay. You pay nothing now: the owner must accept first, then you have 30 minutes to pay.</p><p><button class="btn" onclick="submitReq()">Submit booking request</button></p></div>`}
 function tog(id){F.ex=F.ex.includes(id)?F.ex.filter(x=>x!=id):[...F.ex,id];render()}
-function submitReq(){if(!S.user){S.back=true;S.view='login';msg('Log in or sign up to send your request.');render();return}const v=vn(S.vid),q=quote(v);F.name=F.name||S.user.name;F.phone=F.phone||S.user.phone;if(!F.date||!F.name||!F.phone){msg('Please fill in date, name and phone.');render();return}
+function submitReq(){if(!S.user){S.back=true;S.view='login';nav();msg('Log in or sign up to send your request.');render();return}const v=vn(S.vid),q=quote(v);F.name=F.name||S.user.name;F.phone=F.phone||S.user.phone;if(!F.date||!F.name||!F.phone){msg('Please fill in date, name and phone.');render();return}
 const hrs=Math.max(0,Math.round((new Date(F.date+'T'+F.time)-Date.now())/36e5));
 D.bk.push({id:'VB'+(1000+D.n++),vid:v.id,venue:v.name,hall:q.h.name,pkg:q.p.name,price:q.p.price,extras:q.ex.map(e=>e.name).join(', ')||'none',guests:F.guests,g0:F.guests,date:F.date,time:F.time,total:q.total,paid:0,rate:D.rate,vr:v.rate,status:'requested',uid:S.user.id,hrs,name:F.name,phone:F.phone,reduced:0,used:false,adv:[0,0],hold:0,final:null});
-save();S.view='mine';msg('Request sent. The owner will review it and you will see the status here.');render()}
+save();S.view='mine';nav();msg('Request sent. The owner will review it and you will see the status here.');render()}
 const COUNT=b=>b.hold&&Math.max(0,b.hold-Date.now());
 const fmt=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 function bkCard(b,view){const{c,s}=calc(b);let a='',st=b.status;
@@ -129,7 +129,7 @@ b.final=n;b.fr=r;b.total-=r;b.paid-=r;if(r)led(b,'Refund',r);b.status='completed
 say('Reconciled. Refundable no-shows: '+ok+' of '+sh+' (capped at 10%). Final payout '+$(b.fp)+'.')}
 function advance(id,i){const b=bk(id),a=Math.round(calc(b).s*(i?.3:.2));b.adv[i]=a;led(b,'Vendor payout',a);say('Advance released: '+$(a))}
 function say(m){msg(m);save();render()}
-const sv=v=>{S.view=v;S.msg='';render()};
+const sv=v=>{S.view=v;S.msg='';nav();render()};
 function auth(){const su=S.view=='signup';return `<div class="box" style="max-width:380px;margin:20px auto"><h2 style="margin-top:0">${su?'Create your account':'Log in'}</h2><div class="row" style="flex-direction:column">${su?'<label>Full name<input id="an"></label>':''}<label>${su?'Phone':'Phone or username'}<input id="ap"></label><label>Password<input id="aw" type="password"></label></div><p><button class="btn" onclick="${su?'signup()':'login()'}">${su?'Sign up':'Log in'}</button></p><p class="note">${su?'Have an account? <a href="#" onclick="sv(&quot;login&quot;);return false">Log in</a>':'New here? <a href="#" onclick="sv(&quot;signup&quot;);return false">Sign up</a><br>Demo staff logins: owner / owner123 (Skyline Rooftop), admin / admin123. Demo only, not real security.'}</p></div>`}
 function enter(u){S.user=u;S.role=u.role;if(u.role=='o')S.ov=u.vid;S.view=u.role=='c'&&S.back&&S.vid?'venue':'home';S.back=false;if(u.role=='c'&&F&&F.guests){F.name=u.name;F.phone=u.phone}msg('Welcome, '+u.name+'.');render();scrollTo(0,0)}
 function login(){const p=document.getElementById('ap').value.trim(),w=document.getElementById('aw').value;const u=[{id:'own',name:'Skyline Owner',phone:'owner',pw:'owner123',role:'o',vid:1},{id:'adm',name:'Venubee Admin',phone:'admin',pw:'admin123',role:'a'},...(D.users||[])].find(x=>x.phone==p&&x.pw==w);if(!u){msg('Wrong phone/username or password.');render();return}enter(u)}
@@ -139,12 +139,15 @@ function render(){D.bk.forEach(b=>{if(b.status=='accepted'&&COUNT(b)<=0)b.status
 document.getElementById('nav').innerHTML=S.user?(S.role=='c'?`<button class="${S.view=='mine'?'on':''}" onclick="go('mine')">My bookings</button>`:`<button class="on">${S.role=='o'?'Owner portal':'Admin'}</button>`)+`<span class="mu">${S.user.name}</span><button onclick="logout()">Log out</button>`:`<button class="${S.view=='login'?'on':''}" onclick="sv('login')">Log in</button><button class="btn s" onclick="sv('signup')">Sign up</button>`;
 document.getElementById('app').innerHTML=(S.msg?`<div class="toast">${S.msg}</div>`:'')+(S.view=='login'||S.view=='signup'?auth():S.role=='o'?owner():S.role=='a'?admin():S.view=='venue'?venuePage():S.view=='mine'?mine():home())}
 setInterval(()=>{document.querySelectorAll('.cd').forEach(e=>{const b=bk(e.dataset.id);if(!b)return;if(COUNT(b)<=0){render()}else e.textContent=fmt(COUNT(b))})},1000);
+function nav(){try{history.pushState({v:S.view,id:S.vid},'')}catch(e){}}
+try{history.replaceState({v:'home'},'')}catch(e){}
+addEventListener('popstate',e=>{const st=e.state||{v:'home'};document.getElementById('lb').className='';if(st.lb)return;S.view=st.v;if(st.id){S.vid=st.id;if(!F.hall)initF(vn(st.id))}S.msg='';render()});
 let px=null;
 const show=(el,i)=>{i=(i+3)%3;el.dataset.i=i;el.querySelector('.trk').style.transform='translateX(-'+i*100+'%)';el.querySelectorAll('.dots i').forEach((d,j)=>d.className=j==i?'on':'')};
 document.addEventListener('pointerdown',e=>{const s=e.target.closest('.ss');px=s?{s,x:e.clientX,y:e.clientY}:null});
 document.addEventListener('pointerup',e=>{if(!px)return;const{s,x,y}=px;px=null;const dx=e.clientX-x,dy=e.clientY-y;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)){show(s,+s.dataset.i+(dx<0?1:-1));return}if(Math.abs(dx)<10&&Math.abs(dy)<10){const t=s.dataset.t;if(t=='open')go('venue',+s.dataset.v);else if(t=='zoom')zoom(s)}});
-function zoom(s){const k=s.dataset.k,lb=document.getElementById('lb');lb.innerHTML=slides(vn(s.dataset.v),'lb',k===''?null:+k)+'<button class="btn" onclick="closeLb()">Close ✕</button>';lb.className='on';show(lb.firstChild,+s.dataset.i)}
-function closeLb(){document.getElementById('lb').className=''}
+function zoom(s){const k=s.dataset.k,lb=document.getElementById('lb');lb.innerHTML=slides(vn(s.dataset.v),'lb',k===''?null:+k)+'<button class="btn" onclick="closeLb()">Close ✕</button>';lb.className='on';try{history.pushState({v:S.view,id:S.vid,lb:1},'')}catch(e){}show(lb.firstChild,+s.dataset.i)}
+function closeLb(){if(history.state&&history.state.lb)history.back();else document.getElementById('lb').className=''}
 document.getElementById('lb').addEventListener('click',e=>{if(e.target.id=='lb')closeLb()});
 render();
 </script></body></html>
